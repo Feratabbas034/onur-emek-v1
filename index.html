@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onur Emek Cami Hoca Paneli</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="login-screen" class="container">
+        <div class="card login-card">
+            <i class="fas fa-mosque logo-icon"></i>
+            <h2>Hoca Girişi</h2>
+            <p>Onur Emek Cami Yönetim Sistemi</p>
+            <input type="text" id="username" placeholder="Kullanıcı Adı">
+            <input type="password" id="password" placeholder="Şifre">
+            <button onclick="authAction('login')">Giriş Yap</button>
+            <button class="secondary" onclick="toggleAuth()">Hesap Oluştur</button>
+        </div>
+    </div>
+
+    <!-- KAYIT EKRANI (Gizli) -->
+    <div id="register-screen" class="container hidden">
+        <div class="card login-card">
+            <h2>Hoca Kaydı</h2>
+            <input type="text" id="reg-name" placeholder="Ad Soyad">
+            <input type="text" id="reg-username" placeholder="Kullanıcı Adı">
+            <input type="password" id="reg-password" placeholder="Şifre">
+            <button onclick="authAction('register')">Kaydol</button>
+            <button class="secondary" onclick="toggleAuth()">Girişe Dön</button>
+        </div>
+    </div>
+
+    <!-- ANA PANEL (Giriş Yapınca Açılır) -->
+    <div id="main-panel" class="hidden">
+        <nav class="navbar">
+            <span><i class="fas fa-user-tie"></i> <span id="teacher-name">Hoca</span></span>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+        </nav>
+
+        <div class="dashboard-content">
+            <!-- İstatistik Kartları -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3 id="stat-students">0</h3>
+                    <p>Öğrenci</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-book-open"></i>
+                    <h3 id="stat-juz">0</h3>
+                    <p>Biten Cüz</p>
+                </div>
+            </div>
+
+            <!-- Menü Butonları -->
+            <div class="menu-grid">
+                <button onclick="showSection('students')"><i class="fas fa-user-graduated"></i> Öğrenciler</button>
+                <button onclick="showSection('juz')"><i class="fas fa-quran"></i> Cüz Takibi</button>
+                <button onclick="showSection('announcements')"><i class="fas fa-bullhorn"></i> Duyurular</button>
+                <button onclick="showSection('leaderboard')"><i class="fas fa-trophy"></i> Sıralama</button>
+            </div>
+
+            <!-- Dinamik Bölümler -->
+            <div id="section-students" class="section hidden">
+                <div class="card">
+                    <h3>Öğrenci Ekle</h3>
+                    <input type="text" id="std-name" placeholder="Öğrenci Adı">
+                    <button onclick="addStudent()">Ekle</button>
+                    <div id="student-list" class="list-container"></div>
+                </div>
+            </div>
+
+            <div id="section-announcements" class="section hidden">
+                <div class="card">
+                    <h3>Duyuru Paylaş</h3>
+                    <input type="text" id="ann-title" placeholder="Başlık">
+                    <textarea id="ann-msg" placeholder="Mesajınız"></textarea>
+                    <button onclick="addAnnouncement()">Paylaş</button>
+                    <div id="ann-list" class="list-container"></div>
+                </div>
+            </div>
+            
+            <div id="section-juz" class="section hidden">
+                <div class="card">
+                    <h3>Cüz Atama ve Takip</h3>
+                    <select id="juz-student-select"></select>
+                    <input type="number" id="juz-no" placeholder="Cüz No (1-30)">
+                    <button onclick="assignJuz()">Cüz Ata</button>
+                    <div id="juz-list" class="list-container"></div>
+                </div>
+            </div>
+
+            <div id="section-leaderboard" class="section hidden">
+                <div class="card">
+                    <h3>En Çok Cüz Bitirenler</h3>
+                    <div id="leaderboard-list"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
