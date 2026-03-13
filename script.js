@@ -1,232 +1,227 @@
-// --- VERİ YÖNETİMİ ---
-let db = {
-    teachers: [],
-    students: [],
-    announcements: [],
-    juzRecords: [],
-    memoTests: [],
-    lessons: [],
-    activities: []
-};
+// DURUM YÖNETİMİ
+const App = {
+    db: {
+        teachers: [],
+        students: [],
+        announcements: [],
+        activities: [],
+        juzRecords: []
+    },
+    currentTeacher: null,
 
-let currentTeacher = null;
+    init() {
+        this.loadLocalData();
+        this.checkAuth();
+        UI.updateDate();
+        setInterval(UI.updateDate, 60000);
+    },
 
-// Uygulama Açıldığında Çalışır
-window.onload = () => {
-    loadData();
-    checkLoginStatus();
-};
+    save() {
+        localStorage.setItem('onur_emek_v2_db', JSON.stringify(this.db));
+        UI.refreshAll();
+    },
 
-// Verileri Telefona Kaydet/Yükle (Local Storage)
-function loadData() {
-    const localData = localStorage.getItem('onur_emek_db');
-    if (localData) {
-        db = JSON.parse(localData);
-        // Eksik dizileri tanımla (Hata önleyici)
-        if (!db.teachers) db.teachers = [];
-        if (!db.students) db.students = [];
-        if (!db.announcements) db.announcements = [];
-        if (!db.juzRecords) db.juzRecords = [];
-        if (!db.activities) db.activities = [];
-    }
-}
+    loadLocalData() {
+        const data = localStorage.getItem('onur_emek_v2_db');
+        if (data) this.db = JSON.parse(data);
+    },
 
-function saveData() {
-    localStorage.setItem('onur_emek_db', JSON.stringify(db));
-    updateDashboard();
-    renderAll();
-}
+    checkAuth() {
+        const saved = localStorage.getItem('onur_emek_session');
+        if (saved) {
+            this.currentTeacher = JSON.parse(saved);
+            UI.showApp();
+        }
+    },
 
-// --- GİRİŞ VE KAYIT İŞLEMLERİ ---
-function toggleAuth() {
-    document.getElementById('login-screen').classList.toggle('hidden');
-    document.getElementById('register-screen').classList.toggle('hidden');
-}
-
-function authAction(type) {
-    if (type === 'register') {
+    handleRegister() {
         const name = document.getElementById('reg-name').value;
         const user = document.getElementById('reg-username').value;
         const pass = document.getElementById('reg-password').value;
 
-        if (!name || !user || !pass) {
-            alert("Lütfen tüm alanları doldurun!");
-            return;
-        }
+        if (!name || !user || !pass) return UI.toast("Boş alan bırakmayın!", "error");
         
-        // Kullanıcı var mı kontrolü
-        const exists = db.teachers.find(t => t.user === user);
-        if(exists) return alert("Bu kullanıcı adı zaten alınmış!");
+        this.db.teachers.push({ name, user, pass });
+        this.save();
+        UI.toast("Başarıyla kayıt oldunuz.");
+        UI.toggleAuth(false);
+    },
 
-        db.teachers.push({ name, user, pass });
-        saveData();
-        alert("Hoca kaydı başarılı! Giriş yapabilirsiniz.");
-        toggleAuth(); // Giriş ekranına döner
-    } else {
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
+    handleLogin() {
+        const user = document.getElementById('login-username').value;
+        const pass = document.getElementById('login-password').value;
 
-        const teacher = db.teachers.find(t => t.user === user && t.pass === pass);
+        const teacher = this.db.teachers.find(t => t.user === user && t.pass === pass);
         if (teacher) {
-            currentTeacher = teacher;
-            localStorage.setItem('logged_teacher', JSON.stringify(teacher));
-            showDashboard();
+            this.currentTeacher = teacher;
+            localStorage.setItem('onur_emek_session', JSON.stringify(teacher));
+            UI.showApp();
+            UI.toast("Hoş geldiniz, " + teacher.name);
         } else {
-            alert("Hatalı kullanıcı adı veya şifre!");
+            UI.toast("Hatalı bilgiler!", "error");
         }
+    },
+
+    logout() {
+        localStorage.removeItem('onur_emek_session');
+        location.reload();
+    },
+
+    addStudent() {
+        const name = document.getElementById('new-std-name').value;
+        if (!name) return;
+
+        const std = {
+            id: Date.now(),
+            name,
+            birth: document.getElementById('new-std-birth').value,
+            completedJuz: 0,
+            addedBy: this.currentTeacher.name
+        };
+
+        this.db.students.push(std);
+        this.logActivity(`${name} isimli öğrenci eklendi.`);
+        this.save();
+        UI.hideModal('modal-student');
+        document.getElementById('new-std-name').value = "";
+    },
+
+    assignJuz() {
+        const stdId = document.getElementById('juz-select-student').value;
+        const num = document.getElementById('juz-number').value;
+        const student = this.db.students.find(s => s.id == stdId);
+
+        if (!num || !student) return UI.toast("Eksik bilgi!");
+
+        this.db.juzRecords.unshift({
+            id: Date.now(),
+            studentId: stdId,
+            studentName: student.name,
+            juz: num,
+            status: 'Okuyor',
+            date: new Date().toLocaleDateString('tr-TR')
+        });
+
+        this.logActivity(`${student.name} için ${num}. cüz başlatıldı.`);
+        this.save();
+    },
+
+    completeJuz(id) {
+        const record = this.db.juzRecords.find(r => r.id === id);
+        if (record) {
+            record.status = 'Tamamlandı';
+            const std = this.db.students.find(s => s.id == record.studentId);
+            if (std) std.completedJuz++;
+            this.logActivity(`${record.studentName} ${record.juz}. cüzü bitirdi.`);
+            this.save();
+        }
+    },
+
+    addAnnouncement() {
+        const title = document.getElementById('ann-title').value;
+        const msg = document.getElementById('ann-msg').value;
+        if (!title || !msg) return;
+
+        this.db.announcements.unshift({
+            title, msg, 
+            teacher: this.currentTeacher.name,
+            date: new Date().toLocaleDateString('tr-TR')
+        });
+        this.save();
+        UI.toast("Duyuru yayınlandı.");
+        document.getElementById('ann-title').value = "";
+        document.getElementById('ann-msg').value = "";
+    },
+
+    logActivity(text) {
+        this.db.activities.unshift({ text, time: new Date().toLocaleTimeString('tr-TR') });
+        if (this.db.activities.length > 10) this.db.activities.pop();
     }
-}
+};
 
-function checkLoginStatus() {
-    const saved = localStorage.getItem('logged_teacher');
-    if (saved) {
-        currentTeacher = JSON.parse(saved);
-        showDashboard();
-    }
-}
+// ARAYÜZ YÖNETİMİ
+const UI = {
+    showApp() {
+        document.getElementById('auth-wrapper').classList.add('hidden');
+        document.getElementById('app-wrapper').classList.remove('hidden');
+        document.getElementById('display-teacher-name').innerText = App.currentTeacher.name;
+        this.refreshAll();
+    },
 
-function logout() {
-    localStorage.removeItem('logged_teacher');
-    location.reload();
-}
+    toggleAuth(toRegister) {
+        document.getElementById('login-form').classList.toggle('hidden', toRegister);
+        document.getElementById('register-form').classList.toggle('hidden', !toRegister);
+        document.getElementById('auth-subtitle').innerText = toRegister ? "Hoca Kayıt Formu" : "Hoca Yönetim Paneli";
+    },
 
-// --- PANEL GÖSTERİMİ ---
-function showDashboard() {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('register-screen').classList.add('hidden');
-    document.getElementById('main-panel').classList.remove('hidden');
-    document.getElementById('teacher-name').innerText = currentTeacher.name;
-    updateDashboard();
-    renderAll();
-}
+    switchTab(tabId, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        el.classList.add('active');
+        document.getElementById('page-title').innerText = el.querySelector('span').innerText;
+    },
 
-function showSection(sectionId) {
-    // Tüm bölümleri gizle
-    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-    // Seçilen bölümü aç
-    const target = document.getElementById('section-' + sectionId);
-    if(target) target.classList.remove('hidden');
-    renderAll();
-}
+    refreshAll() {
+        // İstatistikler
+        document.getElementById('count-students').innerText = App.db.students.length;
+        let totalJuz = 0;
+        App.db.students.forEach(s => totalJuz += s.completedJuz);
+        document.getElementById('count-juz').innerText = totalJuz;
 
-// --- ÖĞRENCİ VE CÜZ İŞLEMLERİ ---
-function addStudent() {
-    const name = document.getElementById('std-name').value;
-    if (!name) return alert("Öğrenci adı yazın!");
-
-    db.students.push({
-        id: Date.now(),
-        name: name,
-        completedJuz: 0,
-        status: "Aktif"
-    });
-    
-    addActivity(`${name} isimli öğrenci eklendi.`);
-    saveData();
-    document.getElementById('std-name').value = "";
-}
-
-function assignJuz() {
-    const stdId = document.getElementById('juz-student-select').value;
-    const juzNo = document.getElementById('juz-no').value;
-    const student = db.students.find(s => s.id == stdId);
-
-    if (!juzNo || !student) return alert("Lütfen öğrenci seçin ve cüz no yazın!");
-
-    db.juzRecords.unshift({
-        id: Date.now(),
-        studentName: student.name,
-        juzNo: juzNo,
-        status: "Okuyor",
-        date: new Date().toLocaleDateString('tr-TR')
-    });
-
-    addActivity(`${student.name} isimli öğrenciye ${juzNo}. Cüz verildi.`);
-    saveData();
-}
-
-function completeJuz(id) {
-    const record = db.juzRecords.find(r => r.id === id);
-    if (record) {
-        record.status = "Tamamlandı";
-        const student = db.students.find(s => s.name === record.studentName);
-        if (student) student.completedJuz += 1;
-        addActivity(`${record.studentName}, ${record.juzNo}. Cüzü bitirdi.`);
-        saveData();
-    }
-}
-
-// --- DUYURU SİSTEMİ ---
-function addAnnouncement() {
-    const title = document.getElementById('ann-title').value;
-    const msg = document.getElementById('ann-msg').value;
-
-    if (!title || !msg) return alert("Duyuru içeriği boş olamaz!");
-
-    db.announcements.unshift({
-        id: Date.now(),
-        title,
-        msg,
-        teacher: currentTeacher.name,
-        date: new Date().toLocaleDateString('tr-TR')
-    });
-
-    saveData();
-    document.getElementById('ann-title').value = "";
-    document.getElementById('ann-msg').value = "";
-}
-
-// --- DİĞER ---
-function addActivity(text) {
-    db.activities.unshift({ text, time: new Date().toLocaleTimeString('tr-TR') });
-    if (db.activities.length > 5) db.activities.pop();
-}
-
-function updateDashboard() {
-    document.getElementById('stat-students').innerText = db.students.length;
-    let total = 0;
-    db.students.forEach(s => total += s.completedJuz);
-    document.getElementById('stat-juz').innerText = total;
-}
-
-function renderAll() {
-    // Öğrenci listesi
-    const stdList = document.getElementById('student-list');
-    if (stdList) {
-        stdList.innerHTML = db.students.map(s => `
-            <div class="list-item">
-                <span>${s.name}</span>
-                <span>${s.completedJuz} Cüz</span>
+        // Timeline
+        document.getElementById('timeline').innerHTML = App.db.activities.map(a => `
+            <div class="list-item" style="font-size:13px">
+                <span>${a.text}</span>
+                <small>${a.time}</small>
             </div>
         `).join('');
-    }
 
-    // Cüz listesi
-    const juzList = document.getElementById('juz-list');
-    if (juzList) {
-        juzList.innerHTML = db.juzRecords.map(j => `
-            <div class="list-item">
-                <div>${j.studentName} - <b>${j.juzNo}. Cüz</b></div>
-                ${j.status === 'Okuyor' ? `<button style="width:auto; padding:5px 10px;" onclick="completeJuz(${j.id})">Bitir</button>` : `<span style="color:var(--primary)">Tamamlandı</span>`}
+        // Öğrenci Listesi
+        document.getElementById('student-grid').innerHTML = App.db.students.map(s => `
+            <div class="card glass">
+                <h4>${s.name}</h4>
+                <div class="progress-bar"><div style="width:${(s.completedJuz/30)*100}%"></div></div>
+                <small>${s.completedJuz}/30 Cüz Tamamlandı</small>
             </div>
         `).join('');
-    }
 
-    // Duyurular
-    const annList = document.getElementById('ann-list');
-    if (annList) {
-        annList.innerHTML = db.announcements.map(a => `
-            <div class="card" style="border: 1px solid #444;">
-                <h4>${a.title}</h4>
+        // Cüz Listesi
+        document.getElementById('juz-container').innerHTML = App.db.juzRecords.map(r => `
+            <div class="list-item">
+                <div><b>${r.studentName}</b><br><small>${r.juz}. Cüz - ${r.date}</small></div>
+                ${r.status === 'Okuyor' ? `<button class="btn-small" onclick="App.completeJuz(${r.id})">Bitir</button>` : `<span style="color:var(--primary)">✓</span>`}
+            </div>
+        `).join('');
+
+        // Select Update
+        document.getElementById('juz-select-student').innerHTML = App.db.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+        // Duyurular
+        document.getElementById('ann-container').innerHTML = App.db.announcements.map(a => `
+            <div class="card glass">
+                <h3>${a.title}</h3>
                 <p>${a.msg}</p>
-                <small>${a.teacher} - ${a.date}</small>
+                <small>${a.teacher} • ${a.date}</small>
             </div>
         `).join('');
-    }
+    },
 
-    // Öğrenci seçme kutusu (Cüz atama için)
-    const select = document.getElementById('juz-student-select');
-    if (select) {
-        select.innerHTML = db.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    showModal(id) { document.getElementById(id).style.display = 'flex'; },
+    hideModal(id) { document.getElementById(id).style.display = 'none'; },
+
+    toast(msg, type = "success") {
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerText = msg;
+        document.getElementById('toast-container').appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    },
+
+    updateDate() {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('tr-TR', options);
     }
-}
+};
+
+App.init();
