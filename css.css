@@ -1,0 +1,118 @@
+:root {
+    --bg: #121212;
+    --card-bg: #1e1e1e;
+    --primary: #2ecc71;
+    --text: #e0e0e0;
+    --gray: #333;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    margin-top: 50px;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    margin-bottom: 20px;
+    border: 1px solid #333;
+}
+
+.login-card { text-align: center; }
+.logo-icon { font-size: 50px; color: var(--primary); margin-bottom: 10px; }
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #252525;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+.navbar {
+    width: 100%;
+    background: var(--card-bg);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 15px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 15px;
+    text-align: center;
+    border-radius: 12px;
+    border-bottom: 3px solid var(--primary);
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 15px;
+}
+
+.menu-grid button {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    background: #252525;
+}
+
+.hidden { display: none; }
+
+.list-item {
+    background: #2a2a2a;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.logout-btn { width: auto; background: #e74c3c; padding: 5px 10px; }
