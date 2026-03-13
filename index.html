@@ -2,105 +2,176 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onur Emek Cami Hoca Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Onur Emek Cami | Hoca Paneli</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI -->
-    <div id="login-screen" class="container">
-        <div class="card login-card">
-            <i class="fas fa-mosque logo-icon"></i>
-            <h2>Hoca Girişi</h2>
-            <p>Onur Emek Cami Yönetim Sistemi</p>
-            <input type="text" id="username" placeholder="Kullanıcı Adı">
-            <input type="password" id="password" placeholder="Şifre">
-            <button onclick="authAction('login')">Giriş Yap</button>
-            <button class="secondary" onclick="toggleAuth()">Hesap Oluştur</button>
+    <!-- BİLDİRİM SİSTEMİ (Toast) -->
+    <div id="toast-container"></div>
+
+    <!-- GİRİŞ SİSTEMİ -->
+    <div id="auth-wrapper" class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-box"><i class="fas fa-mosque"></i></div>
+                <h1>Onur Emek Cami</h1>
+                <p id="auth-subtitle">Hoca Yönetim Paneline Hoş Geldiniz</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" placeholder="Kullanıcı Adı">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Şifre">
+                </div>
+                <button class="btn-primary" onclick="App.handleLogin()">Giriş Yap</button>
+                <p class="auth-footer">Hesabınız yok mu? <a href="#" onclick="UI.toggleAuth(true)">Kayıt Ol</a></p>
+            </div>
+
+            <!-- Register Form (Gizli) -->
+            <div id="register-form" class="hidden">
+                <div class="input-group">
+                    <i class="fas fa-signature"></i>
+                    <input type="text" id="reg-name" placeholder="Ad Soyad">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-at"></i>
+                    <input type="text" id="reg-username" placeholder="Kullanıcı Adı">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="reg-password" placeholder="Şifre">
+                </div>
+                <button class="btn-primary" onclick="App.handleRegister()">Kaydı Tamamla</button>
+                <p class="auth-footer">Zaten üye misiniz? <a href="#" onclick="UI.toggleAuth(false)">Girişe Dön</a></p>
+            </div>
         </div>
     </div>
 
-    <!-- KAYIT EKRANI (Gizli) -->
-    <div id="register-screen" class="container hidden">
-        <div class="card login-card">
-            <h2>Hoca Kaydı</h2>
-            <input type="text" id="reg-name" placeholder="Ad Soyad">
-            <input type="text" id="reg-username" placeholder="Kullanıcı Adı">
-            <input type="password" id="reg-password" placeholder="Şifre">
-            <button onclick="authAction('register')">Kaydol</button>
-            <button class="secondary" onclick="toggleAuth()">Girişe Dön</button>
-        </div>
-    </div>
-
-    <!-- ANA PANEL (Giriş Yapınca Açılır) -->
-    <div id="main-panel" class="hidden">
-        <nav class="navbar">
-            <span><i class="fas fa-user-tie"></i> <span id="teacher-name">Hoca</span></span>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+    <!-- ANA UYGULAMA PANELİ -->
+    <div id="app-wrapper" class="hidden">
+        <!-- Sidebar (Masaüstü) / Alt Nav (Mobil) -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-kaaba"></i> <span>PANEL</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" onclick="UI.switchTab('home', this)"><i class="fas fa-chart-pie"></i> <span>Özet</span></li>
+                <li onclick="UI.switchTab('students', this)"><i class="fas fa-user-graduate"></i> <span>Öğrenciler</span></li>
+                <li onclick="UI.switchTab('juz', this)"><i class="fas fa-book-quran"></i> <span>Cüz Takip</span></li>
+                <li onclick="UI.switchTab('memo', this)"><i class="fas fa-medal"></i> <span>Ezber</span></li>
+                <li onclick="UI.switchTab('ann', this)"><i class="fas fa-bullhorn"></i> <span>Duyuru</span></li>
+            </ul>
+            <div class="user-profile" onclick="App.logout()">
+                <div class="avatar"><i class="fas fa-user-tie"></i></div>
+                <div class="user-info">
+                    <span id="display-teacher-name">Hoca Adı</span>
+                    <small>Çıkış Yap</small>
+                </div>
+            </div>
         </nav>
 
-        <div class="dashboard-content">
-            <!-- İstatistik Kartları -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="fas fa-users"></i>
-                    <h3 id="stat-students">0</h3>
-                    <p>Öğrenci</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-book-open"></i>
-                    <h3 id="stat-juz">0</h3>
-                    <p>Biten Cüz</p>
-                </div>
-            </div>
+        <main class="main-content">
+            <!-- ÜST BAR -->
+            <header class="top-bar">
+                <h2 id="page-title">Genel Özet</h2>
+                <div class="date-now" id="current-date">--/--/----</div>
+            </header>
 
-            <!-- Menü Butonları -->
-            <div class="menu-grid">
-                <button onclick="showSection('students')"><i class="fas fa-user-graduated"></i> Öğrenciler</button>
-                <button onclick="showSection('juz')"><i class="fas fa-quran"></i> Cüz Takibi</button>
-                <button onclick="showSection('announcements')"><i class="fas fa-bullhorn"></i> Duyurular</button>
-                <button onclick="showSection('leaderboard')"><i class="fas fa-trophy"></i> Sıralama</button>
-            </div>
-
-            <!-- Dinamik Bölümler -->
-            <div id="section-students" class="section hidden">
-                <div class="card">
-                    <h3>Öğrenci Ekle</h3>
-                    <input type="text" id="std-name" placeholder="Öğrenci Adı">
-                    <button onclick="addStudent()">Ekle</button>
-                    <div id="student-list" class="list-container"></div>
+            <!-- SEKME 1: HOME -->
+            <section id="tab-home" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card gold">
+                        <i class="fas fa-users"></i>
+                        <div class="val" id="count-students">0</div>
+                        <div class="lbl">Öğrenci</div>
+                    </div>
+                    <div class="stat-card emerald">
+                        <i class="fas fa-book-open"></i>
+                        <div class="val" id="count-juz">0</div>
+                        <div class="lbl">Biten Cüz</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <i class="fas fa-calendar-check"></i>
+                        <div class="val" id="count-active">0</div>
+                        <div class="lbl">Aktif Randevu</div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="section-announcements" class="section hidden">
-                <div class="card">
+                <div class="grid-layout">
+                    <div class="card glass">
+                        <h3><i class="fas fa-bolt"></i> Son Aktiviteler</h3>
+                        <div id="timeline" class="timeline">
+                            <!-- JS ile dolacak -->
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <h3><i class="fas fa-trophy"></i> Liderlik Tablosu</h3>
+                        <div id="leaderboard" class="leader-list">
+                            <!-- JS ile dolacak -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEKME 2: ÖĞRENCİLER -->
+            <section id="tab-students" class="tab-content">
+                <div class="action-bar">
+                    <input type="text" id="search-student" placeholder="Öğrenci Ara..." oninput="UI.filterStudents()">
+                    <button class="btn-small" onclick="UI.showModal('modal-student')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="student-grid" class="student-grid">
+                    <!-- JS ile dolacak -->
+                </div>
+            </section>
+
+            <!-- SEKME 3: CÜZ TAKİP -->
+            <section id="tab-juz" class="tab-content">
+                <div class="card glass">
+                    <h3>Yeni Cüz Ata</h3>
+                    <div class="inline-form">
+                        <select id="juz-select-student"></select>
+                        <input type="number" id="juz-number" placeholder="Cüz No (1-30)">
+                        <button onclick="App.assignJuz()">Ata</button>
+                    </div>
+                </div>
+                <div id="juz-container" class="juz-grid">
+                    <!-- JS ile dolacak -->
+                </div>
+            </section>
+
+            <!-- SEKME 5: DUYURULAR -->
+            <section id="tab-ann" class="tab-content">
+                <div class="card glass">
                     <h3>Duyuru Paylaş</h3>
                     <input type="text" id="ann-title" placeholder="Başlık">
-                    <textarea id="ann-msg" placeholder="Mesajınız"></textarea>
-                    <button onclick="addAnnouncement()">Paylaş</button>
-                    <div id="ann-list" class="list-container"></div>
+                    <textarea id="ann-msg" placeholder="Mesajınız..."></textarea>
+                    <button onclick="App.addAnnouncement()">Paylaş</button>
                 </div>
-            </div>
-            
-            <div id="section-juz" class="section hidden">
-                <div class="card">
-                    <h3>Cüz Atama ve Takip</h3>
-                    <select id="juz-student-select"></select>
-                    <input type="number" id="juz-no" placeholder="Cüz No (1-30)">
-                    <button onclick="assignJuz()">Cüz Ata</button>
-                    <div id="juz-list" class="list-container"></div>
-                </div>
-            </div>
+                <div id="ann-container"></div>
+            </section>
+        </main>
+    </div>
 
-            <div id="section-leaderboard" class="section hidden">
-                <div class="card">
-                    <h3>En Çok Cüz Bitirenler</h3>
-                    <div id="leaderboard-list"></div>
-                </div>
+    <!-- MODAL: ÖĞRENCİ EKLE -->
+    <div id="modal-student" class="modal">
+        <div class="modal-content">
+            <h3>Yeni Öğrenci Ekle</h3>
+            <input type="text" id="new-std-name" placeholder="Adı Soyadı">
+            <input type="date" id="new-std-birth" placeholder="Doğum Tarihi">
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="UI.hideModal('modal-student')">İptal</button>
+                <button class="btn-primary" onclick="App.addStudent()">Kaydet</button>
             </div>
-
         </div>
     </div>
 
