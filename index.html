@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Onur Emek Cami Panel</title>
+<title>Onur Emek Cami Yönetim Paneli</title>
 
 <link rel="stylesheet" href="style.css">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -18,27 +21,32 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 <body>
 
-<div id="toast"></div>
+<!-- TOAST -->
+
+<div id="toast-container"></div>
+
 
 <!-- AUTH -->
 
-<div id="auth">
+<div id="auth-wrapper">
 
 <div class="auth-card">
 
-<h1>Onur Emek Cami</h1>
+<h1><i class="fa-solid fa-mosque"></i> Onur Emek Cami</h1>
 
-<input id="login-user" placeholder="Kullanıcı">
+<p>Hoca Paneli</p>
+
+<input id="login-user" placeholder="Kullanıcı Adı">
 <input id="login-pass" type="password" placeholder="Şifre">
 
-<button onclick="App.login()">Giriş</button>
+<button onclick="App.login()">Giriş Yap</button>
 
 <hr>
 
-<h3>Kayıt</h3>
+<h3>Kayıt Ol</h3>
 
 <input id="reg-name" placeholder="Ad Soyad">
-<input id="reg-user" placeholder="Kullanıcı">
+<input id="reg-user" placeholder="Kullanıcı Adı">
 <input id="reg-pass" type="password" placeholder="Şifre">
 
 <button onclick="App.register()">Kayıt Ol</button>
@@ -47,105 +55,282 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 </div>
 
+
 <!-- APP -->
 
-<div id="app" class="hidden">
+<div id="app-wrapper" class="hidden">
 
-<nav>
+<!-- SIDEBAR -->
 
-<h2>Cami Panel</h2>
+<nav class="sidebar">
+
+<h2><i class="fa-solid fa-kaaba"></i> PANEL</h2>
 
 <ul>
 
-<li onclick="UI.tab('home')">Özet</li>
+<li onclick="UI.switchTab('home')">
+<i class="fa-solid fa-chart-pie"></i> Özet
+</li>
 
-<li onclick="UI.tab('students')">Öğrenciler</li>
+<li onclick="UI.switchTab('students')">
+<i class="fa-solid fa-user-graduate"></i> Öğrenciler
+</li>
 
-<li onclick="UI.tab('juz')">Cüz</li>
+<li onclick="UI.switchTab('juz')">
+<i class="fa-solid fa-book-quran"></i> Cüz Takip
+</li>
 
-<li onclick="UI.tab('attendance')">Yoklama</li>
+<li onclick="UI.switchTab('memorization')">
+<i class="fa-solid fa-brain"></i> Ezber
+</li>
 
-<li onclick="UI.tab('ann')">Duyuru</li>
+<li onclick="UI.switchTab('attendance')">
+<i class="fa-solid fa-calendar-check"></i> Yoklama
+</li>
+
+<li onclick="UI.switchTab('announcements')">
+<i class="fa-solid fa-bullhorn"></i> Duyuru
+</li>
+
+<li onclick="UI.switchTab('reports')">
+<i class="fa-solid fa-file"></i> Rapor
+</li>
 
 </ul>
 
-<button onclick="App.logout()">Çıkış</button>
+<button onclick="App.logout()" class="logout-btn">
+Çıkış Yap
+</button>
 
 </nav>
 
-<main>
 
-<section id="tab-home">
 
-<h2>Genel İstatistik</h2>
+<!-- MAIN -->
 
-<div class="stats">
+<main class="main-content">
+
+
+<header class="top-bar">
+
+<h1 id="page-title">Genel Özet</h1>
+
+<div id="today-date"></div>
+
+</header>
+
+
+
+<!-- HOME -->
+
+<section id="tab-home" class="tab active">
+
+<div class="stats-grid">
+
+<div class="stat-card">
+<i class="fa-solid fa-users"></i>
+<h3 id="stat-students">0</h3>
+<p>Öğrenci</p>
+</div>
+
+<div class="stat-card">
+<i class="fa-solid fa-book-open"></i>
+<h3 id="stat-juz">0</h3>
+<p>Biten Cüz</p>
+</div>
+
+<div class="stat-card">
+<i class="fa-solid fa-brain"></i>
+<h3 id="stat-memo">0</h3>
+<p>Ezber Sayfa</p>
+</div>
+
+<div class="stat-card">
+<i class="fa-solid fa-calendar-check"></i>
+<h3 id="stat-att">0</h3>
+<p>Yoklama</p>
+</div>
+
+</div>
+
+
+<div class="grid-two">
 
 <div class="card">
-<h3>Öğrenci</h3>
-<span id="stat-student"></span>
+
+<h3>İlerleme Grafiği</h3>
+
+<canvas id="progressChart"></canvas>
+
 </div>
+
 
 <div class="card">
-<h3>Biten Cüz</h3>
-<span id="stat-juz"></span>
-</div>
+
+<h3>Liderlik Tablosu</h3>
+
+<div id="leaderboard"></div>
 
 </div>
 
-<canvas id="chart"></canvas>
+</div>
 
 </section>
 
-<section id="tab-students" class="hidden">
+
+
+<!-- STUDENTS -->
+
+<section id="tab-students" class="tab">
 
 <div class="toolbar">
 
-<input id="search" placeholder="öğrenci ara"
-oninput="UI.searchStudent()">
+<input id="student-search" placeholder="Öğrenci ara">
 
-<button onclick="UI.openStudent()">+ öğrenci</button>
+<button onclick="UI.openStudentModal()">
+<i class="fa-solid fa-plus"></i> Öğrenci
+</button>
 
 </div>
 
-<div id="students"></div>
+<div id="students-grid"></div>
 
 </section>
 
-<section id="tab-juz" class="hidden">
+
+
+<!-- JUZ -->
+
+<section id="tab-juz" class="tab">
+
+<div class="card">
+
+<h3>Yeni Cüz Ata</h3>
 
 <select id="juz-student"></select>
 
-<input id="juz-num" type="number" min="1" max="30">
+<input id="juz-number" type="number" min="1" max="30">
 
 <button onclick="App.assignJuz()">Ata</button>
+
+</div>
 
 <div id="juz-list"></div>
 
 </section>
 
-<section id="tab-attendance" class="hidden">
 
-<button onclick="App.takeAttendance()">Yoklama Al</button>
 
-<div id="attendance"></div>
+<!-- MEMORIZATION -->
+
+<section id="tab-memorization" class="tab">
+
+<div class="card">
+
+<h3>Ezber Ekle</h3>
+
+<select id="memo-student"></select>
+
+<input id="memo-page" placeholder="Sayfa">
+
+<button onclick="App.addMemorization()">Ekle</button>
+
+</div>
+
+<div id="memo-list"></div>
 
 </section>
 
-<section id="tab-ann" class="hidden">
+
+
+<!-- ATTENDANCE -->
+
+<section id="tab-attendance" class="tab">
+
+<div class="card">
+
+<h3>Bugün Yoklama</h3>
+
+<button onclick="App.takeAttendance()">Yoklama Al</button>
+
+</div>
+
+<div id="attendance-list"></div>
+
+</section>
+
+
+
+<!-- ANNOUNCEMENTS -->
+
+<section id="tab-announcements" class="tab">
+
+<div class="card">
+
+<h3>Duyuru Paylaş</h3>
 
 <input id="ann-title" placeholder="Başlık">
-<textarea id="ann-text"></textarea>
 
-<button onclick="App.addAnn()">Paylaş</button>
+<textarea id="ann-text" placeholder="Mesaj"></textarea>
+
+<button onclick="App.addAnnouncement()">Paylaş</button>
+
+</div>
 
 <div id="ann-list"></div>
 
 </section>
 
+
+
+<!-- REPORTS -->
+
+<section id="tab-reports" class="tab">
+
+<div class="card">
+
+<h3>PDF Rapor</h3>
+
+<button onclick="App.exportPDF()">
+
+PDF indir
+
+</button>
+
+</div>
+
+</section>
+
+
 </main>
 
 </div>
+
+
+
+<!-- MODAL STUDENT -->
+
+<div id="student-modal" class="modal">
+
+<div class="modal-content">
+
+<h3>Yeni Öğrenci</h3>
+
+<input id="new-student-name" placeholder="Ad Soyad">
+
+<input id="new-student-birth" type="date">
+
+<input id="new-student-phone" placeholder="Veli Telefon">
+
+<button onclick="App.addStudent()">Kaydet</button>
+
+<button onclick="UI.closeStudentModal()">İptal</button>
+
+</div>
+
+</div>
+
+
 
 <script src="script.js"></script>
 
