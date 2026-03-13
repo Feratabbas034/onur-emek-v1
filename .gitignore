@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# macOS files
+.DS_Store
+
+# Build files
+/build/
+
+# Log files
+*.log
+
+# Backup files
+*.bak
+
+# Operating System files
+Thumbs.db
+.DS_Store
+
+# Database files
+*.sql
+
+# Sensitive data
+secrets.json
