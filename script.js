@@ -1,7 +1,7 @@
 // --- AYARLAR VE VERİTABANI BAĞLANTISI ---
 // Not: Gerçek senkronizasyon için JSONbin.io hesabı açıp burayı güncellemelisin.
-const API_URL = "https://api.jsonbin.io/v3/b/65f000000000000000000000"; // Kendi Bin ID'nizi buraya yazın
-const API_KEY = "$2b$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // Kendi API Key'inizi buraya yazın
+const API_URL = "https://api.jsonbin.io/v3/b/69b47dc46887921da853ab2b"; // Kendi Bin ID'nizi buraya yazın
+const API_KEY = "$2a$10$fk0NsmcqelSKej1D9LVuR.ds2SVQTRpd/TdDddzWfJ8qc7wS161.K"; // Kendi API Key'inizi buraya yazın
 
 let db = {
     teachers: [],
